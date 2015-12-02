@@ -37,14 +37,14 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 	initialize(manager, scopeReporter, name, stepConfiguration, endpoints, properties) {
 
 		let child;
+		let stdinRequest;
 
 		properties._start = {
 			value: function () {
 				const step = this;
 
-				let command = stepConfiguration.command;
-				let args = [];
-				let stdinRequest;
+				const command = stepConfiguration.command;
+				const args = stepConfiguration.args;
 				let options = {};
 
 				if (stepConfiguration.env) {
@@ -55,9 +55,11 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					args = stepDefinition.arguments;
 				}
 
-				endpoints.command.receive(function* () {
+				endpoints.stdin.receive(function* () {
 					while (step.isRunning) {
 						const request = yield;
+
+						stdinRequest = request;
 
 						options.stdio = [endpoints.stdin ? 'pipe' : 'ignore',
 							endpoints.stdout ? 'pipe' : 'ignore',
@@ -66,12 +68,20 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 						child = child_process.spawn(command, args, options);
 
-						if (endpoints.stdin) {
-							endpoints.stdin.receive(function* () {
-								stdinRequest = yield;
-								stdinRequest.stream.pipe(child.stdin);
-							});
-						}
+						child.on('close', function (code, signal) {
+							console.log('child process terminated due to receipt of signal ' + signal);
+						});
+
+						stdinRequest.stream.pipe(child.stdin);
+
+						/*
+												if (endpoints.stdin) {
+													endpoints.stdin.receive(function* () {
+														stdinRequest = yield;
+														stdinRequest.stream.pipe(child.stdin);
+													});
+												}
+						*/
 
 						if (endpoints.stdout) {
 							endpoints.stdout.send({

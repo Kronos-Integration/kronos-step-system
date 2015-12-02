@@ -22,22 +22,31 @@ require('../system').registerWithManager(manager);
 describe('system', function () {
   const sys = manager.steps['kronos-system'].createInstance(manager, undefined, {
     name: "myStep",
-    type: "kronos-system"
+    type: "kronos-system",
+    command: "cat",
+    args: [path.join(__dirname, 'system.js')]
   });
 
-  const testEndpoint = BaseStep.createEndpoint('test', {
+  const stdinEndpoint = BaseStep.createEndpoint('test', {
     "out": true,
     "active": true
   });
 
-  testEndpoint.connect(sys.endpoints.stdin);
+  stdinEndpoint.connect(sys.endpoints.stdin);
 
-  const testCommandEndpoint = BaseStep.createEndpoint('test', {
+  const stdoutEndpoint = BaseStep.createEndpoint('test', {
+    "in": true,
+    "passive": true
+  });
+
+  stdoutEndpoint.connect(sys.endpoints.stdout);
+
+  const commandEndpoint = BaseStep.createEndpoint('test', {
     "out": true,
     "active": true
   });
 
-  testCommandEndpoint.connect(sys.endpoints.command);
+  commandEndpoint.connect(sys.endpoints.command);
 
   describe('static', function () {
     testStep.checkStepStatic(manager, sys);
@@ -49,18 +58,23 @@ describe('system', function () {
       if (state === 'running' && !wasRunning) {
         console.log(`${state}: ${livecycle.statesHistory}`);
 
-        /*
-                testEndpoint.send({
-                  stream: flowStream
-                });
+        const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
+          encoding: 'utf8'
+        });
 
-                testCommandEndpoint.send({
-                  data: [{
-                    type: "stop",
-                    flow: "sample"
-                  }]
+        /*
+                stdinEndpoint.send({
+                  stream: stream
                 });
         */
+        /*
+                        testCommandEndpoint.send({
+                          data: [{
+                            type: "stop",
+                            flow: "sample"
+                          }]
+                        });
+                */
         wasRunning = true;
       }
 
