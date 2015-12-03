@@ -27,26 +27,49 @@ describe('system', function () {
     args: [path.join(__dirname, 'system.js')]
   });
 
-  const stdinEndpoint = BaseStep.createEndpoint('test', {
+  const stdinEndpoint = BaseStep.createEndpoint('stdin-test', {
     "out": true,
     "active": true
   });
 
   stdinEndpoint.connect(sys.endpoints.stdin);
 
-  const stdoutEndpoint = BaseStep.createEndpoint('test', {
+
+  const stdoutEndpoint = BaseStep.createEndpoint('stdout-test', {
     "in": true,
     "passive": true
   });
 
+  let stdoutRequest;
+
   stdoutEndpoint.connect(sys.endpoints.stdout);
 
-  const commandEndpoint = BaseStep.createEndpoint('test', {
-    "out": true,
-    "active": true
+  stdoutEndpoint.receive(function* () {
+    stdoutRequest = yield;
+    //stdoutRequest.stream.pipe(process.stdout);
   });
 
-  commandEndpoint.connect(sys.endpoints.command);
+  const stderrEndpoint = BaseStep.createEndpoint('stderr-test', {
+    "in": true,
+    "passive": true
+  });
+
+  stderrEndpoint.connect(sys.endpoints.stderr);
+
+  let stderrRequest;
+
+  stderrEndpoint.receive(function* () {
+    stderrRequest = yield;
+  });
+
+  /*
+      const commandEndpoint = BaseStep.createEndpoint('test', {
+        "out": true,
+        "active": true
+      });
+
+      commandEndpoint.connect(sys.endpoints.command);
+    */
 
   describe('static', function () {
     testStep.checkStepStatic(manager, sys);
@@ -56,17 +79,16 @@ describe('system', function () {
     let wasRunning = false;
     testStep.checkStepLivecycle(manager, sys, function (step, state, livecycle) {
       if (state === 'running' && !wasRunning) {
-        console.log(`${state}: ${livecycle.statesHistory}`);
+        //console.log(`${state}: ${livecycle.statesHistory}`);
 
         const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
           encoding: 'utf8'
         });
 
-        /*
-                stdinEndpoint.send({
-                  stream: stream
-                });
-        */
+        stdinEndpoint.send({
+          stream: stream
+        });
+
         /*
                         testCommandEndpoint.send({
                           data: [{
@@ -79,8 +101,7 @@ describe('system', function () {
       }
 
       if (state === 'stopped' && wasRunning) {
-        console.log(`state: ${state}`);
-        //assert.equal(manager.flows['sample'].name, 'sample');
+        assert.equal(stdoutRequest.info.command, 'cat');
       }
     });
   });
