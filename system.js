@@ -69,7 +69,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 						child = child_process.spawn(command, args, options);
 
 						child.on('close', function (code, signal) {
-							console.log('child process terminated due to receipt of signal ' + signal);
+							console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
 						});
 
 						stdinRequest.stream.pipe(child.stdin);
@@ -83,7 +83,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 												}
 						*/
 
-						if (endpoints.stdout) {
+						if (endpoints.stdout.isConnected) {
 							endpoints.stdout.send({
 								info: {
 									command: command
@@ -92,7 +92,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 							});
 						}
 
-						if (endpoints.stderr) {
+						if (endpoints.stderr.isConnected) {
 							endpoints.stderr.send({
 								info: {
 									command: command
