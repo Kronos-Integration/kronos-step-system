@@ -77,7 +77,7 @@ describe('system', function () {
 
   describe('live-cycle', function () {
     let wasRunning = false;
-    testStep.checkStepLivecycle(manager, sys, function (step, state, livecycle) {
+    testStep.checkStepLivecycle(manager, sys, function (step, state, livecycle, done) {
       if (state === 'running' && !wasRunning) {
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
@@ -103,6 +103,8 @@ describe('system', function () {
       if (state === 'stopped' && wasRunning) {
         assert.equal(stdoutRequest.info.command, 'cat');
       }
+
+      done();
     });
   });
 });
