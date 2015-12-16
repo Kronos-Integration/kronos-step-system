@@ -24,7 +24,7 @@ describe('system', function () {
     name: "myStep",
     type: "kronos-system",
     command: "cat",
-    args: [path.join(__dirname, 'system.js')]
+    args: ['-u' /*, path.join(__dirname, 'system.js')*/ ]
   });
 
   const stdinEndpoint = BaseStep.createEndpoint('stdin-test', {
@@ -46,6 +46,7 @@ describe('system', function () {
 
   stdoutEndpoint.receive(function* () {
     stdoutRequest = yield;
+    console.log("**** Request: ");
     //stdoutRequest.stream.pipe(process.stdout);
   });
 
@@ -81,13 +82,15 @@ describe('system', function () {
       if (state === 'running' && !wasRunning) {
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
-        const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
-          encoding: 'utf8'
-        });
+        for (let i = 0; i < 2; i++) {
+          const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
+            encoding: 'utf8'
+          });
 
-        stdinEndpoint.send({
-          stream: stream
-        });
+          stdinEndpoint.send({
+            stream: stream
+          });
+        }
 
         /*
                         testCommandEndpoint.send({
