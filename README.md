@@ -2,6 +2,23 @@
 
 Step to execute system commands
 
+sample
+======
+
+compress streams with gzip executable
+
+```
+  "myStep" {
+    "type": "kronos-system",
+    "command": "gzip",
+    "args": ["-c", "-9"],
+    "endpoints" : {
+      "stdin" : "otherStep/out",
+      "stdout" : "jetAnotherStep/in"
+    }
+  }
+```
+
 install
 =======
 
