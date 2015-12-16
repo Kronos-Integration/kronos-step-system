@@ -36,8 +36,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 	},
 	initialize(manager, scopeReporter, name, stepConfiguration, endpoints, properties) {
 
-		let child;
-		let stdinRequest;
+		let childProcesses = {};
 
 		properties._start = {
 			value: function () {
@@ -59,20 +58,25 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					while (step.isRunning) {
 						const request = yield;
 
-						stdinRequest = request;
+						let cp = {
+							stdinRequest: request
+						}
 
 						options.stdio = [endpoints.stdin ? 'pipe' : 'ignore',
 							endpoints.stdout ? 'pipe' : 'ignore',
 							endpoints.stderr ? 'pipe' : 'ignore'
 						];
 
-						child = child_process.spawn(command, args, options);
+						cp.child = child_process.spawn(command, args, options);
 
-						child.on('close', function (code, signal) {
+						childProcesses[cp.child.pid] = cp;
+
+						cp.child.on('close', function (code, signal) {
 							console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
+							delete childProcesses[cp.child.pid];
 						});
 
-						stdinRequest.stream.pipe(child.stdin);
+						request.stream.pipe(cp.child.stdin);
 
 						/*
 												if (endpoints.stdin) {
@@ -88,7 +92,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 								info: {
 									command: command
 								},
-								stream: child.stdout
+								stream: cp.child.stdout
 							});
 						}
 
@@ -97,7 +101,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 								info: {
 									command: command
 								},
-								stream: child.stderr
+								stream: cp.child.stderr
 							});
 						}
 					}
@@ -108,15 +112,13 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 		};
 		properties._stop = {
 			value: function () {
-				if (child) {
-					if (stdinRequest) {
-						stdinRequest.stream.unpipe(child.stdin);
-						stdinRequest = undefined;
-					}
+				Object.keys(childProcesses).forEach(pid => {
+					const cp = childProcesses[pid];
+					cp.child.kill();
+					cp.stdinRequest.stream.unpipe(cp.child.stdin);
+				});
 
-					child.kill();
-					child = undefined;
-				}
+				childProcesses = {};
 
 				return Promise.resolve(this);
 			}
