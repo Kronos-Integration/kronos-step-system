@@ -14,7 +14,7 @@ compress streams with gzip executable
     "args": ["-c", "-9"],
     "endpoints" : {
       "stdin" : "otherStep/out",
-      "stdout" : "jetAnotherStep/in"
+      "stdout" : "yetAnotherStep/in"
     }
   }
 ```
