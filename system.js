@@ -6,13 +6,7 @@ const child_process = require('child_process');
 
 const systemStep = Object.assign({}, require('kronos-step').Step, {
 	"name": "kronos-system",
-	"description": "Starts a child process",
-	"config": {
-		"command": {
-			"description": "command to execute",
-			"type": "string"
-		}
-	},
+	"description": "Starts a child process and optionally feed stdin into",
 	"endpoints": {
 		"command": {
 			"in": true,
@@ -54,6 +48,25 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					args = stepDefinition.arguments;
 				}
 
+				/*
+								if (endpoints.command.isConnected) {
+									endpoints.command.receive(function* () {
+										let cp = {
+											stdinRequest: request
+										}
+
+										options.stdio = ['ignore',
+											endpoints.stdout ? 'pipe' : 'ignore',
+											endpoints.stderr ? 'pipe' : 'ignore'
+										];
+
+										cp.child = child_process.spawn(command, args, options);
+
+										childProcesses[cp.child.pid] = cp;
+									});
+								}
+				*/
+
 				endpoints.stdin.receive(function* () {
 					while (step.isRunning) {
 						const request = yield;
@@ -62,18 +75,22 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 							stdinRequest: request
 						}
 
-						options.stdio = [endpoints.stdin ? 'pipe' : 'ignore',
-							endpoints.stdout ? 'pipe' : 'ignore',
-							endpoints.stderr ? 'pipe' : 'ignore'
-						];
+						options.stdio = [
+							endpoints.stdin,
+							endpoints.stdout,
+							endpoints.stderr
+						].map(e => e.isConnected ? 'pipe' : 'ignore')
 
 						cp.child = child_process.spawn(command, args, options);
 
 						childProcesses[cp.child.pid] = cp;
 
+						console.log(`process started: ${Object.keys(childProcesses)}`);
+
 						cp.child.on('close', function (code, signal) {
-							console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
+							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
 							delete childProcesses[cp.child.pid];
+							console.log(`process ended: ${Object.keys(childProcesses)}`);
 						});
 
 						request.stream.pipe(cp.child.stdin);
