@@ -85,12 +85,12 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 						childProcesses[cp.child.pid] = cp;
 
-						console.log(`process started: ${Object.keys(childProcesses)}`);
+						step.info(level => `process started: ${Object.keys(childProcesses)}`);
 
 						cp.child.on('close', function (code, signal) {
 							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
 							delete childProcesses[cp.child.pid];
-							console.log(`process ended: ${Object.keys(childProcesses)}`);
+							step.info(level => `process ended: ${Object.keys(childProcesses)}`);
 						});
 
 						request.stream.pipe(cp.child.stdin);
