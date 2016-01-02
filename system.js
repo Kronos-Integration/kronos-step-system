@@ -9,33 +9,26 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 	"description": "Starts a child process and optionally feed stdin into",
 	"endpoints": {
 		"command": {
-			"in": true,
-			"passive": true
+			"in": true
 		},
 		"stdin": {
-			"in": true,
-			"mandatory": false,
-			"passive": true
+			"in": true
 		},
 		"stdout": {
-			"out": true,
-			"mandatory": false,
-			"active": true
+			"out": true
 		},
 		"stderr": {
-			"out": true,
-			"mandatory": false,
-			"active": true
+			"out": true
 		}
 	},
-	initialize(manager, scopeReporter, name, stepConfiguration, endpoints, properties) {
+	initialize(manager, scopeReporter, name, stepConfiguration, properties) {
 
 		let childProcesses = {};
 
 		properties._start = {
 			value: function () {
 				const step = this;
-
+				const endpoints = step.endpoints;
 				const command = stepConfiguration.command;
 				const args = stepConfiguration.args;
 				let options = {};
@@ -48,81 +41,64 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					args = stepDefinition.arguments;
 				}
 
-				/*
-								if (endpoints.command.isConnected) {
-									endpoints.command.receive(function* () {
-										let cp = {
-											stdinRequest: request
-										}
-
-										options.stdio = ['ignore',
-											endpoints.stdout ? 'pipe' : 'ignore',
-											endpoints.stderr ? 'pipe' : 'ignore'
-										];
-
-										cp.child = child_process.spawn(command, args, options);
-
-										childProcesses[cp.child.pid] = cp;
-									});
-								}
-				*/
-
-				endpoints.stdin.receive(function* () {
-					while (step.isRunning) {
-						const request = yield;
-
-						let cp = {
-							stdinRequest: request
-						}
-
-						options.stdio = [
-							endpoints.stdin,
-							endpoints.stdout,
-							endpoints.stderr
-						].map(e => e.isConnected ? 'pipe' : 'ignore')
-
-						cp.child = child_process.spawn(command, args, options);
-
-						childProcesses[cp.child.pid] = cp;
-
-						step.info(level => `process started: ${Object.keys(childProcesses)}`);
-
-						cp.child.on('close', function (code, signal) {
-							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
-							delete childProcesses[cp.child.pid];
-							step.info(level => `process ended: ${Object.keys(childProcesses)}`);
-						});
-
-						request.stream.pipe(cp.child.stdin);
-
-						/*
-												if (endpoints.stdin) {
-													endpoints.stdin.receive(function* () {
-														stdinRequest = yield;
-														stdinRequest.stream.pipe(child.stdin);
-													});
-												}
-						*/
-
-						if (endpoints.stdout.isConnected) {
-							endpoints.stdout.send({
-								info: {
-									command: command
-								},
-								stream: cp.child.stdout
-							});
-						}
-
-						if (endpoints.stderr.isConnected) {
-							endpoints.stderr.send({
-								info: {
-									command: command
-								},
-								stream: cp.child.stderr
-							});
-						}
+				endpoints.command.receive = request => {
+					let cp = {
+						stdinRequest: request
 					}
-				});
+
+					options.stdio = [
+						endpoints.stdout,
+						endpoints.stderr
+					].map(e => e.isConnected ? 'pipe' : 'ignore')
+
+					cp.child = child_process.spawn(command, args, options);
+
+					childProcesses[cp.child.pid] = cp;
+				};
+
+				endpoints.stdin.receive = request => {
+					let cp = {
+						stdinRequest: request
+					}
+
+					options.stdio = [
+						endpoints.stdin,
+						endpoints.stdout,
+						endpoints.stderr
+					].map(e => e.isConnected ? 'pipe' : 'ignore')
+
+					cp.child = child_process.spawn(command, args, options);
+
+					childProcesses[cp.child.pid] = cp;
+
+					step.info(level => `process started: ${Object.keys(childProcesses)}`);
+
+					cp.child.on('close', function (code, signal) {
+						//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
+						delete childProcesses[cp.child.pid];
+						step.info(level => `process ended: ${Object.keys(childProcesses)}`);
+					});
+
+					request.stream.pipe(cp.child.stdin);
+
+					if (endpoints.stdout.isConnected) {
+						endpoints.stdout.send({
+							info: {
+								command: command
+							},
+							stream: cp.child.stdout
+						});
+					}
+
+					if (endpoints.stderr.isConnected) {
+						endpoints.stderr.send({
+							info: {
+								command: command
+							},
+							stream: cp.child.stderr
+						});
+					}
+				};
 
 				return Promise.resolve(step);
 			}
