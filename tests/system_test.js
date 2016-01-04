@@ -13,7 +13,7 @@ const path = require('path'),
   fs = require('fs');
 
 const testStep = require('kronos-test-step'),
-  BaseStep = require('kronos-step');
+  endpoint = require('kronos-step').endpoint;
 
 const manager = testStep.managerMock;
 
@@ -27,41 +27,31 @@ describe('system', function () {
     args: ['-u' /*, '/dev/zero'*/ /*, path.join(__dirname, 'system.js')*/ ]
   });
 
-  const stdinEndpoint = BaseStep.createEndpoint('stdin-test', {
-    "out": true,
-    "active": true
-  });
+  const stdinEndpoint = new endpoint.SendEndpoint('stdin-test');
 
-  stdinEndpoint.connect(sys.endpoints.stdin);
+  stdinEndpoint.connected = sys.endpoints.stdin;
 
 
-  const stdoutEndpoint = BaseStep.createEndpoint('stdout-test', {
-    "in": true,
-    "passive": true
-  });
+  const stdoutEndpoint = new endpoint.ReceiveEndpoint('stdout-test');
+
+  sys.endpoints.stdout.connected = stdoutEndpoint;
 
   let stdoutRequest;
 
-  stdoutEndpoint.connect(sys.endpoints.stdout);
-
-  stdoutEndpoint.receive(function* () {
-    stdoutRequest = yield;
-    console.log("**** Request: ");
+  stdoutEndpoint.receive = request => {
+    stdoutRequest = request;
     stdoutRequest.stream.pipe(process.stdout);
-  });
+  };
 
-  const stderrEndpoint = BaseStep.createEndpoint('stderr-test', {
-    "in": true,
-    "passive": true
-  });
+  const stderrEndpoint = new endpoint.ReceiveEndpoint('stderr-test');
 
-  stderrEndpoint.connect(sys.endpoints.stderr);
+  sys.endpoints.stderr.connected = stderrEndpoint;
 
   let stderrRequest;
 
-  stderrEndpoint.receive(function* () {
-    stderrRequest = yield;
-  });
+  stderrEndpoint.receive = request => {
+    stderrRequest = request;
+  };
 
   /*
       const commandEndpoint = BaseStep.createEndpoint('test', {
@@ -83,7 +73,7 @@ describe('system', function () {
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
         for (let i = 0; i < 5; i++) {
-          const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
+          const stream = fs.createReadStream(path.join(__dirname, 'system_test.js'), {
             encoding: 'utf8'
           });
 
