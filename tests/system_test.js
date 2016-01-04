@@ -73,7 +73,7 @@ describe('system', function () {
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
         for (let i = 0; i < 5; i++) {
-          const stream = fs.createReadStream(path.join(__dirname, 'system.js'), {
+          const stream = fs.createReadStream(path.join(__dirname, 'system_test.js'), {
             encoding: 'utf8'
           });
 

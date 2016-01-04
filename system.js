@@ -30,15 +30,11 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 				const step = this;
 				const endpoints = step.endpoints;
 				const command = stepConfiguration.command;
-				const args = stepConfiguration.args;
+				const args = stepConfiguration.arguments;
 				let options = {};
 
 				if (stepConfiguration.env) {
 					options.env = stepDefinition.env;
-				}
-
-				if (stepConfiguration.arguments) {
-					args = stepDefinition.arguments;
 				}
 
 				endpoints.command.receive = request => {
