@@ -21,7 +21,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 			"out": true
 		}
 	},
-	initialize(manager, scopeReporter, name, stepConfiguration, properties) {
+	initialize(manager, scopeReporter, name, config, properties) {
 
 		let childProcesses = {};
 
@@ -29,27 +29,23 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 			value: function () {
 				const step = this;
 				const endpoints = step.endpoints;
-				const command = stepConfiguration.command;
-				const args = stepConfiguration.args;
+				const command = config.command;
+				const args = config.arguments;
 				let options = {};
 
-				if (stepConfiguration.env) {
-					options.env = stepDefinition.env;
-				}
-
-				if (stepConfiguration.arguments) {
-					args = stepDefinition.arguments;
+				if (config.env) {
+					options.env = config.env;
 				}
 
 				endpoints.command.receive = request => {
 					let cp = {
 						stdinRequest: request
-					}
+					};
 
 					options.stdio = [
 						endpoints.stdout,
 						endpoints.stderr
-					].map(e => e.isConnected ? 'pipe' : 'ignore')
+					].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 					cp.child = child_process.spawn(command, args, options);
 
@@ -59,24 +55,24 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 				endpoints.stdin.receive = request => {
 					let cp = {
 						stdinRequest: request
-					}
+					};
 
 					options.stdio = [
 						endpoints.stdin,
 						endpoints.stdout,
 						endpoints.stderr
-					].map(e => e.isConnected ? 'pipe' : 'ignore')
+					].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 					cp.child = child_process.spawn(command, args, options);
 
 					childProcesses[cp.child.pid] = cp;
 
-					step.info(level => `process started: ${Object.keys(childProcesses)}`);
+					step.info(level => `Process started: ${Object.keys(childProcesses)}`);
 
 					cp.child.on('close', function (code, signal) {
 						//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
 						delete childProcesses[cp.child.pid];
-						step.info(level => `process ended: ${Object.keys(childProcesses)}`);
+						step.info(level => `Process ended: ${Object.keys(childProcesses)}`);
 					});
 
 					request.stream.pipe(cp.child.stdin);
