@@ -28,7 +28,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 		properties._start = {
 			value: function () {
 				const step = this;
-				const endpoints = step.endpoints;
+				const interceptedEndpoints = step.interceptedEndpoints;
 				const command = config.command;
 				const args = config.arguments;
 				let options = {};
@@ -37,14 +37,14 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					options.env = config.env;
 				}
 
-				endpoints.command.receive = request => {
+				interceptedEndpoints.command.receive = request => {
 					let cp = {
 						stdinRequest: request
 					};
 
 					options.stdio = [
-						endpoints.stdout,
-						endpoints.stderr
+						interceptedEndpoints.stdout,
+						interceptedEndpoints.stderr
 					].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 					cp.child = child_process.spawn(command, args, options);
@@ -52,15 +52,15 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					childProcesses[cp.child.pid] = cp;
 				};
 
-				endpoints.stdin.receive = request => {
+				interceptedEndpoints.stdin.receive = request => {
 					let cp = {
 						stdinRequest: request
 					};
 
 					options.stdio = [
-						endpoints.stdin,
-						endpoints.stdout,
-						endpoints.stderr
+						interceptedEndpoints.stdin,
+						interceptedEndpoints.stdout,
+						interceptedEndpoints.stderr
 					].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 					cp.child = child_process.spawn(command, args, options);
@@ -77,22 +77,22 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 					request.stream.pipe(cp.child.stdin);
 
-					if (endpoints.stdout.isConnected) {
-						endpoints.stdout.send({
+					if (interceptedEndpoints.stdout.isConnected) {
+						interceptedEndpoints.stdout.send({
 							info: {
 								command: command
 							},
 							stream: cp.child.stdout
-						});
+						}, request);
 					}
 
-					if (endpoints.stderr.isConnected) {
-						endpoints.stderr.send({
+					if (interceptedEndpoints.stderr.isConnected) {
+						interceptedEndpoints.stderr.send({
 							info: {
 								command: command
 							},
 							stream: cp.child.stderr
-						});
+						}, request);
 					}
 				};
 
