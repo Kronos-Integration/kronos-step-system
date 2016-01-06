@@ -53,47 +53,52 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 				};
 
 				interceptedEndpoints.stdin.receive = request => {
-					let cp = {
-						stdinRequest: request
-					};
+					return new Promise((fullfilled, rejected) => {
+						let cp = {
+							stdinRequest: request,
+							responses: []
+						};
 
-					options.stdio = [
-						interceptedEndpoints.stdin,
-						interceptedEndpoints.stdout,
-						interceptedEndpoints.stderr
-					].map(e => e.isConnected ? 'pipe' : 'ignore');
+						options.stdio = [
+							interceptedEndpoints.stdin,
+							interceptedEndpoints.stdout,
+							interceptedEndpoints.stderr
+						].map(e => e.isConnected ? 'pipe' : 'ignore');
 
-					cp.child = child_process.spawn(command, args, options);
+						cp.child = child_process.spawn(command, args, options);
 
-					childProcesses[cp.child.pid] = cp;
+						childProcesses[cp.child.pid] = cp;
 
-					step.info(level => `Process started: ${Object.keys(childProcesses)}`);
+						step.info(level => `Process started: ${Object.keys(childProcesses)}`);
 
-					cp.child.on('close', function (code, signal) {
-						//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
-						delete childProcesses[cp.child.pid];
-						step.info(level => `Process ended: ${Object.keys(childProcesses)}`);
+						cp.child.on('close', function (code, signal) {
+							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
+							delete childProcesses[cp.child.pid];
+							step.info(level => `Process ended: ${Object.keys(childProcesses)}`);
+
+							fullfilled(Promise.all(cp.responses));
+						});
+
+						request.stream.pipe(cp.child.stdin);
+
+						if (interceptedEndpoints.stdout.isConnected) {
+							cp.responses.push(interceptedEndpoints.stdout.send({
+								info: {
+									command: command
+								},
+								stream: cp.child.stdout
+							}, request));
+						}
+
+						if (interceptedEndpoints.stderr.isConnected) {
+							cp.responses.push(interceptedEndpoints.stderr.send({
+								info: {
+									command: command
+								},
+								stream: cp.child.stderr
+							}, request));
+						}
 					});
-
-					request.stream.pipe(cp.child.stdin);
-
-					if (interceptedEndpoints.stdout.isConnected) {
-						interceptedEndpoints.stdout.send({
-							info: {
-								command: command
-							},
-							stream: cp.child.stdout
-						}, request);
-					}
-
-					if (interceptedEndpoints.stderr.isConnected) {
-						interceptedEndpoints.stderr.send({
-							info: {
-								command: command
-							},
-							stream: cp.child.stderr
-						}, request);
-					}
 				};
 
 				return Promise.resolve(step);

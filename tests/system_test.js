@@ -36,11 +36,21 @@ describe('system', function () {
 
   sys.endpoints.stdout.connected = stdoutEndpoint;
 
+
+  function StreamPromise(stream) {
+    return new Promise((fullfilled, rejected) => {
+      stream.on('end', () => {
+        fullfilled("StreamPromise");
+      })
+    });
+  }
+
   let stdoutRequest;
 
   stdoutEndpoint.receive = request => {
     stdoutRequest = request;
     stdoutRequest.stream.pipe(process.stdout);
+    return StreamPromise(stdoutRequest.stream);
   };
 
   const stderrEndpoint = new endpoint.ReceiveEndpoint('stderr-test');
@@ -51,16 +61,8 @@ describe('system', function () {
 
   stderrEndpoint.receive = request => {
     stderrRequest = request;
+    return StreamPromise(request.stream);
   };
-
-  /*
-      const commandEndpoint = BaseStep.createEndpoint('test', {
-        "out": true,
-        "active": true
-      });
-
-      commandEndpoint.connect(sys.endpoints.command);
-    */
 
   describe('static', function () {
     testStep.checkStepStatic(manager, sys);
@@ -72,24 +74,23 @@ describe('system', function () {
       if (state === 'running' && !wasRunning) {
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
-        for (let i = 0; i < 5; i++) {
+        const PROCESSES = 5;
+
+        for (let i = 0; i < PROCESSES; i++) {
           const stream = fs.createReadStream(path.join(__dirname, 'system_test.js'), {
             encoding: 'utf8'
           });
 
           stdinEndpoint.send({
-            stream: stream
+            stream: stream,
+            info: {
+              id: i
+            }
+          }).then(r => {
+            console.log(`response: ${r}`);
           });
         }
 
-        /*
-                        testCommandEndpoint.send({
-                          data: [{
-                            type: "stop",
-                            flow: "sample"
-                          }]
-                        });
-                */
         wasRunning = true;
 
         setTimeout(() => {
