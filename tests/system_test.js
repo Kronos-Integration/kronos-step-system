@@ -41,7 +41,7 @@ describe('system', function () {
     return new Promise((fullfilled, rejected) => {
       stream.on('end', () => {
         fullfilled("StreamPromise");
-      })
+      });
     });
   }
 
