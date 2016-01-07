@@ -24,44 +24,43 @@ describe('system', function () {
     name: "myStep",
     type: "kronos-system",
     command: "cat",
-    args: ['-u' /*, '/dev/zero'*/ /*, path.join(__dirname, 'system.js')*/ ]
+    _arguments: [ /*'-u' , '/dev/zero'*/ /*, path.join(__dirname, 'system.js')*/ ]
   });
 
   const stdinEndpoint = new endpoint.SendEndpoint('stdin-test');
-
   stdinEndpoint.connected = sys.endpoints.stdin;
 
 
   const stdoutEndpoint = new endpoint.ReceiveEndpoint('stdout-test');
-
   sys.endpoints.stdout.connected = stdoutEndpoint;
 
 
-  function StreamPromise(stream) {
-    return new Promise((fullfilled, rejected) => {
-      stream.on('end', () => {
-        fullfilled("StreamPromise");
-      });
-    });
+  function StreamPromise(stream, result) {
+    return new Promise((fullfilled, rejected) => stream.on('end', () => fullfilled(result)));
   }
 
   let stdoutRequest;
-
-  stdoutEndpoint.receive = request => {
+  stdoutEndpoint.receive = (request, before) => {
+    //console.log(`stdout: ${before.info.id}`);
     stdoutRequest = request;
-    stdoutRequest.stream.pipe(process.stdout);
-    return StreamPromise(stdoutRequest.stream);
+    //stdoutRequest.stream.pipe(process.stdout);
+    return StreamPromise(stdoutRequest.stream, {
+      id: before.info.id,
+      name: 'stdout'
+    });
   };
 
   const stderrEndpoint = new endpoint.ReceiveEndpoint('stderr-test');
-
   sys.endpoints.stderr.connected = stderrEndpoint;
 
   let stderrRequest;
 
-  stderrEndpoint.receive = request => {
+  stderrEndpoint.receive = (request, before) => {
     stderrRequest = request;
-    return StreamPromise(request.stream);
+    return StreamPromise(request.stream, {
+      id: before.info.id,
+      name: 'stderr'
+    });
   };
 
   describe('static', function () {
@@ -72,6 +71,8 @@ describe('system', function () {
     let wasRunning = false;
     testStep.checkStepLivecycle(manager, sys, function (step, state, livecycle, done) {
       if (state === 'running' && !wasRunning) {
+        wasRunning = true;
+
         //console.log(`${state}: ${livecycle.statesHistory}`);
 
         const PROCESSES = 5;
@@ -87,16 +88,19 @@ describe('system', function () {
               id: i
             }
           }).then(r => {
-            console.log(`response: ${r}`);
+            try {
+              assert.equal(r[0].name, 'stdout');
+              assert.equal(r[1].name, 'stderr');
+
+              if (r[0].id === PROCESSES - 1) {
+                done();
+              }
+            } catch (e) {
+              done(e);
+            }
           });
         }
 
-        wasRunning = true;
-
-        setTimeout(() => {
-          console.log("wait over...");
-          done();
-        }, 1000);
         return;
       }
 

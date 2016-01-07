@@ -27,14 +27,19 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 		properties._start = {
 			value: function () {
-				const step = this;
-				const interceptedEndpoints = step.interceptedEndpoints;
+				const interceptedEndpoints = this.interceptedEndpoints;
 				const command = config.command;
-				const args = config.arguments;
+				let args;
 				let options = {};
 
-				if (config.env) {
-					options.env = config.env;
+				['env', 'cwd', 'uid', 'gid'].forEach(a => {
+					if (config[a] !== undefined) {
+						options[a] = config[a];
+					}
+				});
+
+				if (config.arguments) {
+					args = config.arguments;
 				}
 
 				interceptedEndpoints.command.receive = request => {
@@ -69,14 +74,13 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 						childProcesses[cp.child.pid] = cp;
 
-						step.info(level => `Process started: ${Object.keys(childProcesses)}`);
+						this.info(level => `Process started: ${command} @${cp.child.pid}`);
 
-						cp.child.on('close', function (code, signal) {
+						cp.child.on('close', (code, signal) => {
 							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
-							delete childProcesses[cp.child.pid];
-							step.info(level => `Process ended: ${Object.keys(childProcesses)}`);
-
+							this.info(level => `Process ended: ${cp.child.pid}`);
 							fullfilled(Promise.all(cp.responses));
+							delete childProcesses[cp.child.pid];
 						});
 
 						request.stream.pipe(cp.child.stdin);
@@ -101,7 +105,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					});
 				};
 
-				return Promise.resolve(step);
+				return Promise.resolve(this);
 			}
 		};
 		properties._stop = {
