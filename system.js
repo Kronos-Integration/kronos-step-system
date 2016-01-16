@@ -27,7 +27,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 		properties._start = {
 			value: function () {
-				const interceptedEndpoints = this.interceptedEndpoints;
+				const endpoints = this.endpoints;
 				const command = config.command;
 				let args;
 				let options = {};
@@ -42,14 +42,14 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					args = config.arguments;
 				}
 
-				interceptedEndpoints.command.receive = request => {
+				endpoints.command.receive = request => {
 					let cp = {
 						stdinRequest: request
 					};
 
 					options.stdio = [
-						interceptedEndpoints.stdout,
-						interceptedEndpoints.stderr
+						endpoints.stdout,
+						endpoints.stderr
 					].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 					cp.child = child_process.spawn(command, args, options);
@@ -57,7 +57,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					childProcesses[cp.child.pid] = cp;
 				};
 
-				interceptedEndpoints.stdin.receive = request => {
+				endpoints.stdin.receive = request => {
 					return new Promise((fullfilled, rejected) => {
 						let cp = {
 							stdinRequest: request,
@@ -65,9 +65,9 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 						};
 
 						options.stdio = [
-							interceptedEndpoints.stdin,
-							interceptedEndpoints.stdout,
-							interceptedEndpoints.stderr
+							endpoints.stdin,
+							endpoints.stdout,
+							endpoints.stderr
 						].map(e => e.isConnected ? 'pipe' : 'ignore');
 
 						cp.child = child_process.spawn(command, args, options);
@@ -83,23 +83,23 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 							delete childProcesses[cp.child.pid];
 						});
 
-						request.stream.pipe(cp.child.stdin);
+						request.payload.pipe(cp.child.stdin);
 
-						if (interceptedEndpoints.stdout.isConnected) {
-							cp.responses.push(interceptedEndpoints.stdout.send({
+						if (endpoints.stdout.isConnected) {
+							cp.responses.push(endpoints.stdout.receive({
 								info: {
 									command: command
 								},
-								stream: cp.child.stdout
+								payload: cp.child.stdout
 							}, request));
 						}
 
-						if (interceptedEndpoints.stderr.isConnected) {
-							cp.responses.push(interceptedEndpoints.stderr.send({
+						if (endpoints.stderr.isConnected) {
+							cp.responses.push(endpoints.stderr.receive({
 								info: {
 									command: command
 								},
-								stream: cp.child.stderr
+								payload: cp.child.stderr
 							}, request));
 						}
 					});
@@ -113,7 +113,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 				Object.keys(childProcesses).forEach(pid => {
 					const cp = childProcesses[pid];
 					cp.child.kill();
-					cp.stdinRequest.stream.unpipe(cp.child.stdin);
+					cp.stdinRequest.payload.unpipe(cp.child.stdin);
 				});
 
 				childProcesses = {};

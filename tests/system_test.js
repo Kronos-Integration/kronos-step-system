@@ -44,7 +44,7 @@ describe('system', function () {
     //console.log(`stdout: ${before.info.id}`);
     stdoutRequest = request;
     //stdoutRequest.stream.pipe(process.stdout);
-    return StreamPromise(stdoutRequest.stream, {
+    return StreamPromise(stdoutRequest.payload, {
       id: before.info.id,
       name: 'stdout'
     });
@@ -57,7 +57,7 @@ describe('system', function () {
 
   stderrEndpoint.receive = (request, before) => {
     stderrRequest = request;
-    return StreamPromise(request.stream, {
+    return StreamPromise(request.payload, {
       id: before.info.id,
       name: 'stderr'
     });
@@ -82,8 +82,8 @@ describe('system', function () {
             encoding: 'utf8'
           });
 
-          stdinEndpoint.send({
-            stream: stream,
+          stdinEndpoint.receive({
+            payload: stream,
             info: {
               id: i
             }
