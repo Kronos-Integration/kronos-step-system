@@ -105,7 +105,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 					});
 				};
 
-				return Promise.resolve(this);
+				return Promise.resolve();
 			}
 		};
 		properties._stop = {
@@ -118,7 +118,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 				childProcesses = {};
 
-				return Promise.resolve(this);
+				return Promise.resolve();
 			}
 		};
 
