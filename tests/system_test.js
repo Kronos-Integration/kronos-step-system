@@ -6,10 +6,8 @@
 const chai = require('chai'),
   assert = chai.assert,
   expect = chai.expect,
-  should = chai.should();
-chai.use(require("chai-as-promised"));
-
-const path = require('path'),
+  should = chai.should(),
+  path = require('path'),
   fs = require('fs');
 
 const testStep = require('kronos-test-step'),
@@ -63,13 +61,13 @@ describe('system', function () {
     });
   };
 
-  describe('static', function () {
+  describe('static', () => {
     testStep.checkStepStatic(manager, sys);
   });
 
-  describe('live-cycle', function () {
+  describe('live-cycle', () => {
     let wasRunning = false;
-    testStep.checkStepLivecycle(manager, sys, function (step, state, livecycle, done) {
+    testStep.checkStepLivecycle(manager, sys, (step, state, livecycle, done) => {
       if (state === 'running' && !wasRunning) {
         wasRunning = true;
 
