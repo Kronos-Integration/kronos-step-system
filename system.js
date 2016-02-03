@@ -21,8 +21,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 			"out": true
 		}
 	},
-	initialize(manager, scopeReporter, name, config, properties) {
-
+	initialize(manager, name, config, properties) {
 		let childProcesses = {};
 
 		properties._start = {
@@ -126,6 +125,4 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 	}
 });
 
-exports.registerWithManager = function (manager) {
-	manager.registerStep(systemStep);
-};
+exports.registerWithManager = manager => manager.registerStep(systemStep);
