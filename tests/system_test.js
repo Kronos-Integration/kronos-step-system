@@ -13,7 +13,7 @@ const chai = require('chai'),
 
 const testStep = require('kronos-test-step'),
   ksm = require('kronos-service-manager'),
-  endpoint = require('kronos-step').endpoint;
+  endpoint = require('kronos-endpoint');
 
 function StreamPromise(stream, result) {
   return new Promise((fullfilled, rejected) => stream.on('end', () => fullfilled(result)));
