@@ -73,7 +73,7 @@ const systemStep = Object.assign({}, require('kronos-step').Step, {
 
 						childProcesses[cp.child.pid] = cp;
 
-						this.info(level => `Process started: ${command} @${cp.child.pid}`);
+						this.trace(level => `Process started: ${command} @${cp.child.pid}`);
 
 						cp.child.on('close', (code, signal) => {
 							//console.log(`child process terminated with ${code} due to receipt of signal ${signal}`);
