@@ -17,6 +17,8 @@ Step to execute system commands
 sample
 ======
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Kronos-Integration/kronos-step-system.svg)](https://greenkeeper.io/)
+
 compress streams with gzip executable
 
 ```json
