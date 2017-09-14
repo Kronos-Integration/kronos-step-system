@@ -1,7 +1,7 @@
 /* global describe, it, xit, before */
 /* jslint node: true, esnext: true */
 
-"use strict";
+'use strict';
 
 const chai = require('chai'),
   assert = chai.assert,
@@ -10,15 +10,15 @@ const chai = require('chai'),
   path = require('path'),
   fs = require('fs');
 
-
 const testStep = require('kronos-test-step'),
   ksm = require('kronos-service-manager'),
   endpoint = require('kronos-endpoint');
 
 function StreamPromise(stream, result) {
-  return new Promise((fullfilled, rejected) => stream.on('end', () => fullfilled(result)));
+  return new Promise((fullfilled, rejected) =>
+    stream.on('end', () => fullfilled(result))
+  );
 }
-
 
 let stdoutRequest;
 let stderrRequest;
@@ -29,12 +29,18 @@ let stdoutEndpoint;
 
 before(done => {
   ksm.manager({}, [require('../system')]).then(m => {
-    sys = m.steps['kronos-system'].createInstance({
-      name: "myStep",
-      type: "kronos-system",
-      command: "cat",
-      _arguments: [ /*'-u' , '/dev/zero'*/ /*, path.join(__dirname, 'system.js')*/ ]
-    }, m);
+    sys = m.steps['kronos-system'].createInstance(
+      {
+        name: 'myStep',
+        type: 'kronos-system',
+        command: 'cat',
+        _arguments: [
+          /*'-u' , '/dev/zero'*/
+          /*, path.join(__dirname, 'system.js')*/
+        ]
+      },
+      m
+    );
 
     stdinEndpoint = new endpoint.SendEndpoint('stdin-test');
     stdinEndpoint.connected = sys.endpoints.stdin;
@@ -73,46 +79,56 @@ it('test spec', () => {
 
   describe('live-cycle', () => {
     let wasRunning = false;
-    testStep.checkStepLivecycle(manager, sys, (step, state, livecycle, done) => {
-      if (state === 'running' && !wasRunning) {
-        wasRunning = true;
+    testStep.checkStepLivecycle(
+      manager,
+      sys,
+      (step, state, livecycle, done) => {
+        if (state === 'running' && !wasRunning) {
+          wasRunning = true;
 
-        //console.log(`${state}: ${livecycle.statesHistory}`);
+          //console.log(`${state}: ${livecycle.statesHistory}`);
 
-        const PROCESSES = 5;
+          const PROCESSES = 5;
 
-        for (let i = 0; i < PROCESSES; i++) {
-          const stream = fs.createReadStream(path.join(__dirname, 'system_test.js'), {
-            encoding: 'utf8'
-          });
-
-          stdinEndpoint.receive({
-            payload: stream,
-            info: {
-              id: i
-            }
-          }).then(r => {
-            try {
-              assert.equal(r[0].name, 'stdout');
-              assert.equal(r[1].name, 'stderr');
-
-              if (r[0].id === PROCESSES - 1) {
-                done();
+          for (let i = 0; i < PROCESSES; i++) {
+            const stream = fs.createReadStream(
+              path.join(__dirname, 'system-test.js'),
+              {
+                encoding: 'utf8'
               }
-            } catch (e) {
-              done(e);
-            }
-          }).catch(done);
+            );
+
+            stdinEndpoint
+              .receive({
+                payload: stream,
+                info: {
+                  id: i
+                }
+              })
+              .then(r => {
+                try {
+                  assert.equal(r[0].name, 'stdout');
+                  assert.equal(r[1].name, 'stderr');
+
+                  if (r[0].id === PROCESSES - 1) {
+                    done();
+                  }
+                } catch (e) {
+                  done(e);
+                }
+              })
+              .catch(done);
+          }
+
+          return;
         }
 
-        return;
-      }
+        if (state === 'stopped' && wasRunning) {
+          assert.equal(stdoutRequest.info.command, 'cat');
+        }
 
-      if (state === 'stopped' && wasRunning) {
-        assert.equal(stdoutRequest.info.command, 'cat');
+        done();
       }
-
-      done();
-    });
+    );
   });
 });
