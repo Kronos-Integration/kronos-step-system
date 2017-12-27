@@ -2,7 +2,9 @@
   "name": "kronos-step-system",
   "version": "0.0.0-semantic-release",
   "description": "step to execute system commands",
-  "keywords": ["kronos-step"],
+  "keywords": [
+    "kronos-step"
+  ],
   "main": "dist/system.js",
   "module": "src/system.js",
   "scripts": {
@@ -38,7 +40,6 @@
     "nyc": "^11.4.1",
     "ava": "^0.24.0",
     "rollup": "^0.53.0",
-    "rollup-plugin-babel": "^3.0.3",
     "rollup-plugin-multi-entry": "^2.0.2",
     "xo": "^0.19.0"
   },
@@ -65,13 +66,23 @@
     }
   },
   "ava": {
-    "files": ["build/*-test.js"],
-    "presets": ["env"],
-    "require": ["babel-register"]
+    "files": [
+      "build/*-test.js"
+    ],
+    "presets": [
+      "env"
+    ],
+    "require": [
+      "babel-register"
+    ]
   },
   "nyc": {
-    "include": ["build/*-test.js"],
-    "reporter": ["lcov"],
+    "include": [
+      "build/*-test.js"
+    ],
+    "reporter": [
+      "lcov"
+    ],
     "report-dir": "./build/coverage"
   }
 }
