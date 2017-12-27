@@ -2,10 +2,9 @@
   "name": "kronos-step-system",
   "version": "0.0.0-semantic-release",
   "description": "step to execute system commands",
-  "keywords": [
-    "kronos-step"
-  ],
-  "main": "system.js",
+  "keywords": ["kronos-step"],
+  "main": "dist/system.js",
+  "module": "src/system.js",
   "scripts": {
     "cover": "nyc --temp-directory build/nyc ava",
     "doc": "./node_modules/.bin/jsdoc lib/*.js",
@@ -15,8 +14,8 @@
     "pretest": "rollup -c tests/rollup.config.js",
     "posttest": "npm run prepare && markdown-doctest",
     "prepare": "rollup -c",
-    "docs": "documentation readme {{module}} --section=API",
-    "lint": "documentation lint {{module}}"
+    "docs": "documentation readme src/system.js --section=API",
+    "lint": "documentation lint src/system.js"
   },
   "repository": {
     "type": "git",
@@ -66,23 +65,13 @@
     }
   },
   "ava": {
-    "files": [
-      "build/*-test.js"
-    ],
-    "presets": [
-      "env"
-    ],
-    "require": [
-      "babel-register"
-    ]
+    "files": ["build/*-test.js"],
+    "presets": ["env"],
+    "require": ["babel-register"]
   },
   "nyc": {
-    "include": [
-      "build/*-test.js"
-    ],
-    "reporter": [
-      "lcov"
-    ],
+    "include": ["build/*-test.js"],
+    "reporter": ["lcov"],
     "report-dir": "./build/coverage"
   }
 }

@@ -1,13 +1,6 @@
-/* global describe, it, xit, before */
-/* jslint node: true, esnext: true */
+import test from 'ava';
 
-'use strict';
-
-const chai = require('chai'),
-  assert = chai.assert,
-  expect = chai.expect,
-  should = chai.should(),
-  path = require('path'),
+const path = require('path'),
   fs = require('fs');
 
 const testStep = require('kronos-test-step'),
