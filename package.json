@@ -38,7 +38,7 @@
   "devDependencies": {
     "kronos-service-manager": "^3.5.10",
     "kronos-test-step": "3.1.4",
-    "semantic-release": "^12.2.0",
+    "semantic-release": "^12.2.2",
     "documentation": "^5.3.5",
     "markdown-doctest": "^0.9.1",
     "nyc": "^11.4.1",
