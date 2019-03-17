@@ -7,7 +7,6 @@
 [![Coverage Status](https://coveralls.io/repos/Kronos-Integration/kronos-step-system/badge.svg)](https://coveralls.io/r/Kronos-Integration/kronos-step-system)
 [![Known Vulnerabilities](https://snyk.io/test/github/Kronos-Integration/kronos-step-system/badge.svg)](https://snyk.io/test/github/Kronos-Integration/kronos-step-system)
 [![GitHub Issues](https://img.shields.io/github/issues/Kronos-Integration/kronos-step-system.svg?style=flat-square)](https://github.com/Kronos-Integration/kronos-step-system/issues)
-[![Stories in Ready](https://badge.waffle.io/Kronos-Integration/kronos-step-system.svg?label=ready&title=Ready)](http://waffle.io/Kronos-Integration/kronos-step-system)
 [![Dependency Status](https://david-dm.org/Kronos-Integration/kronos-step-system.svg)](https://david-dm.org/Kronos-Integration/kronos-step-system)
 [![devDependency Status](https://david-dm.org/Kronos-Integration/kronos-step-system/dev-status.svg)](https://david-dm.org/Kronos-Integration/kronos-step-system#info=devDependencies)
 [![docs](http://inch-ci.org/github/Kronos-Integration/kronos-step-system.svg?branch=master)](http://inch-ci.org/github/Kronos-Integration/kronos-step-system)
