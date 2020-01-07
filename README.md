@@ -1,7 +1,4 @@
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-[![Build Status](https://secure.travis-ci.org/Kronos-Integration/kronos-step-system.png)](http://travis-ci.org/Kronos-Integration/kronos-step-system)
-[![codecov.io](http://codecov.io/github/Kronos-Integration/kronos-step-system/coverage.svg?branch=master)](http://codecov.io/github/Kronos-Integration/kronos-step-system?branch=master)
-[![Coverage Status](https://coveralls.io/repos/Kronos-Integration/kronos-step-system/badge.svg)](https://coveralls.io/r/Kronos-Integration/kronos-step-system)
 [![Known Vulnerabilities](https://snyk.io/test/github/Kronos-Integration/kronos-step-system/badge.svg)](https://snyk.io/test/github/Kronos-Integration/kronos-step-system)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![npm](https://img.shields.io/npm/v/kronos-step-system.svg)](https://www.npmjs.com/package/kronos-step-system)
@@ -11,6 +8,9 @@
 [![minified size](https://badgen.net/bundlephobia/min/kronos-step-system)](https://bundlephobia.com/result?p=kronos-step-system)
 [![downloads](http://img.shields.io/npm/dm/kronos-step-system.svg?style=flat-square)](https://npmjs.org/package/kronos-step-system)
 [![GitHub Issues](https://img.shields.io/github/issues/Kronos-Integration/kronos-step-system.svg?style=flat-square)](https://github.com/Kronos-Integration/kronos-step-system/issues)
+[![Build Status](https://secure.travis-ci.org/Kronos-Integration/kronos-step-system.png)](http://travis-ci.org/Kronos-Integration/kronos-step-system)
+[![codecov.io](http://codecov.io/github/Kronos-Integration/kronos-step-system/coverage.svg?branch=master)](http://codecov.io/github/Kronos-Integration/kronos-step-system?branch=master)
+[![Coverage Status](https://coveralls.io/repos/Kronos-Integration/kronos-step-system/badge.svg)](https://coveralls.io/r/Kronos-Integration/kronos-step-system)
 
 # kronos-step-system
 
